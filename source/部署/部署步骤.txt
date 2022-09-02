@@ -1,0 +1,35 @@
+一、etd-middle-web前端页面：
+1、Idea开发工具中安装依赖
+
+npm install vue-socket.io --save
+
+npm install socket.io-client --save
+
+npm install --save jquery
+
+2、修改websocket配置
+修改文件：\etd-middle\etd-middle-web\src\main.js
+const socketInstance = SocketIO('http://192.168.48.83:9092'
+  ,{transports: ['websocket'], upgrade: false}
+);
+①外网ip端口直连直配方式：SocketIO地址改成socket地址如：'http://127.0.0.1:9092;'，此IP+Port必须外网开放
+②域名方式代理转发：如http://www.xxxx.com/,则需要在Nginx中做配置代理到内网socket服务：
+       location ^~/socket.io {
+	        proxy_http_version 1.1;
+	        proxy_set_header Upgrade $http_upgrade;
+	        proxy_set_header Connection "upgrade";
+	        proxy_pass http://127.0.0.1:9092;
+      }
+修改配置后重新打包前端。
+二、数据库：
+1、执行脚本
+ALTER TABLE `t_balance_log`
+ADD COLUMN `order_due_flag`  int(2) NULL DEFAULT 0 COMMENT '订单超时标志 1 是 ， 空 否， 0 否，' AFTER `merchant_audit_status`;
+
+三、websocket服务
+1、优先启动drain_socket_server服务，先修改drain-socket-server.jar中config.properties文件IP端口，
+    启动命令linux: bin/run.sh；windows:bin/run.bat
+
+2、然后启动drain_consumer服务，先修改conf/config.properties中的redis配置，及socket服务地址端口（就是上面一步服务配置的启动的服务端口ip）
+   启动命令linux: bin/run.sh；windows:bin/run.bat
+
